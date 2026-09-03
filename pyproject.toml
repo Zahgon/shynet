@@ -6,35 +6,44 @@ authors = ["R. Miles McCain <github@sendmiles.email>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
-python = "^3.8"
-Django = "^4"
-django-allauth = "^0.45.0"
+python = "^3.9"
+Flask = "^3.0"
+Flask-SQLAlchemy = "^3.1"
+Flask-Migrate = "^4.0"
+Flask-Login = "^0.6.3"
+Flask-WTF = "^1.2"
+Flask-Mail = "^0.10"
+Flask-Caching = "^2.3"
+Flask-Babel = "^4.0"
+Flask-Admin = "^1.6"
+Flask-DebugToolbar = "^0.16"
+SQLAlchemy = "^2.0"
+alembic = "^1.13"
+itsdangerous = "^2.2"
+email-validator = "^2.1"
 geoip2 = "^4.2.0"
-whitenoise = "^5.3.0"
+whitenoise = "^6.6"
 celery = "^5.2.2"
-django-ipware = "^4.0.2"
-PyYAML = "^5.4.1"
+PyYAML = "^6.0"
 user-agents = "^2.2.0"
-rules = "^3.0"
-gunicorn = "^20.1.0"
+gunicorn = "^22.0"
 psycopg2-binary = "^2.9.2"
-redis = "^3.5.3"
-django-redis-cache = "^3.0.0"
-pycountry = "^20.7.3"
-html2text = "^2020.1.16"
-django-health-check = "^3.16.4"
-django-npm = "^1.0.0"
-python-dotenv = "^0.18.0"
-django-debug-toolbar = "^3.2.1"
-django-cors-headers = "^3.11.0"
+redis = "^5.0"
+pycountry = "^24.6"
+html2text = "^2024.2"
+python-dotenv = "^1.0"
 
 [tool.poetry.dev-dependencies]
 pytest-sugar = "^0.9.4"
 factory-boy = "^3.2.0"
-pytest-django = "^4.4.0"
-django-coverage-plugin = "^2.0.0"
-django-stubs = "^1.8.0"
-mypy = "^0.910"
+pytest = "^8.0"
+coverage = "^7.4"
+mypy = "^1.9"
+
+[tool.pytest.ini_options]
+testpaths = ["shynet"]
+python_files = ["test_*.py", "tests_*.py"]
+python_classes = ["Test*"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

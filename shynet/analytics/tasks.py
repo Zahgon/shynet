@@ -4,13 +4,14 @@ from hashlib import sha256
 
 import geoip2.database
 import user_agents
-from celery import shared_task
-from django.conf import settings
-from django.core.cache import cache
-from django.db.models import Q
-from django.utils import timezone
+from sqlalchemy import select
 
 from core.models import Service
+from shynet import settings, timezone
+from shynet.cache import cache
+from shynet.exceptions import ObjectDoesNotExist
+from shynet.celery import app as celery_app
+from shynet.extensions import db
 
 from .models import Hit, Session
 
@@ -21,7 +22,7 @@ _geoip2_asn_reader = None
 
 
 def _geoip2_lookup(ip):
-    global _geoip2_city_reader, _geoip2_asn_reader  # TODO: is there a better way to do global Django vars? Is this thread safe?
+    global _geoip2_city_reader, _geoip2_asn_reader
     try:
         if settings.MAXMIND_CITY_DB == None or settings.MAXMIND_ASN_DB == None:
             return None
@@ -44,7 +45,7 @@ def _geoip2_lookup(ip):
         return {}
 
 
-@shared_task
+@celery_app.task
 def ingress_request(
     service_uuid,
     tracker,
@@ -57,7 +58,15 @@ def ingress_request(
     identifier="",
 ):
     try:
-        service = Service.objects.get(pk=service_uuid, status=Service.ACTIVE)
+        service = db.session.scalar(
+            select(Service).where(
+                Service.uuid == service_uuid, Service.status == Service.ACTIVE
+            )
+        )
+        if service is None:
+            raise ObjectDoesNotExist(
+                f"No active service with uuid {service_uuid}"
+            )
         log.debug(f"Linked to service {service}")
 
         if dnt and service.respect_dnt:
@@ -96,9 +105,12 @@ def ingress_request(
         session = None
         if cache.get(session_cache_path) is not None:
             cache.touch(session_cache_path, settings.SESSION_MEMORY_TIMEOUT)
-            session = Session.objects.filter(
-                pk=cache.get(session_cache_path), service=service
-            ).first()
+            session = db.session.scalar(
+                select(Session).where(
+                    Session.uuid == cache.get(session_cache_path),
+                    Session.service_id == service.uuid,
+                )
+            )
         if session is None:
             initial = True
 
@@ -124,8 +136,8 @@ def ingress_request(
                 device_type = "DESKTOP"
             if device_type == "ROBOT" and service.ignore_robots:
                 return
-            session = Session.objects.create(
-                service=service,
+            session = Session(
+                service_id=service.uuid,
                 ip=ip if service.collect_ips and not settings.BLOCK_ALL_IPS else None,
                 user_agent=user_agent,
                 identifier=identifier.strip(),
@@ -141,8 +153,10 @@ def ingress_request(
                 latitude=ip_data.get("latitude"),
                 time_zone=ip_data.get("time_zone") or "",
             )
+            db.session.add(session)
+            db.session.commit()
             cache.set(
-                session_cache_path, session.pk, timeout=settings.SESSION_MEMORY_TIMEOUT
+                session_cache_path, str(session.pk), timeout=settings.SESSION_MEMORY_TIMEOUT
             )
         else:
             initial = False
@@ -153,7 +167,8 @@ def ingress_request(
             session.last_seen = time
             if session.identifier == "" and identifier.strip() != "":
                 session.identifier = identifier.strip()
-            session.save()
+            db.session.add(session)
+            db.session.commit()
 
         # Create or update hit
         idempotency = payload.get("idempotency")
@@ -163,22 +178,26 @@ def ingress_request(
         if idempotency is not None:
             if cache.get(idempotency_path) is not None:
                 cache.touch(idempotency_path, settings.SESSION_MEMORY_TIMEOUT)
-                hit = Hit.objects.filter(
-                    pk=cache.get(idempotency_path), session=session
-                ).first()
+                hit = db.session.scalar(
+                    select(Hit).where(
+                        Hit.id == cache.get(idempotency_path),
+                        Hit.session_id == session.uuid,
+                    )
+                )
                 if hit is not None:
                     # There is an existing hit with an identical idempotency key. That means
                     # this is a heartbeat.
                     log.debug("Hit is a heartbeat; updating old hit with new data...")
                     hit.heartbeats += 1
                     hit.last_seen = time
-                    hit.save()
+                    db.session.add(hit)
+                    db.session.commit()
 
         if hit is None:
             log.debug("Hit is a page load; creating new hit...")
             # There is no existing hit; create a new one
-            hit = Hit.objects.create(
-                session=session,
+            hit = Hit(
+                session_id=session.uuid,
                 initial=initial,
                 tracker=tracker,
                 # At first, location is given by the HTTP referrer. Some browsers
@@ -189,8 +208,10 @@ def ingress_request(
                 load_time=payload.get("loadTime"),
                 start_time=time,
                 last_seen=time,
-                service=service,
+                service_id=service.uuid,
             )
+            db.session.add(hit)
+            db.session.commit()
 
             # Recalculate whether the session is a bounce
             session.recalculate_bounce()
@@ -201,6 +222,7 @@ def ingress_request(
                     idempotency_path, hit.pk, timeout=settings.SESSION_MEMORY_TIMEOUT
                 )
     except Exception as e:
+        db.session.rollback()
         log.exception(e)
         print(e)
         raise e

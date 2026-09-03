@@ -37,15 +37,14 @@ RUN apk add --no-cache curl && \
 # Move dependency files
 COPY poetry.lock pyproject.toml ./
 COPY package.json package-lock.json ../
-# Django expects node_modules to be in its parent directory.
+# The static file finder expects node_modules to be in the parent directory.
 
 # Install more dependencies and cleanup build dependencies afterwards
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev postgresql-dev libressl-dev libffi-dev && \
 	npm i -P --prefix .. && \
-	pip install poetry==1.2.2 && \
+	pip install poetry==1.8.5 && \
 	poetry config virtualenvs.create false && \
-	poetry run pip install "Cython<3.0" "pyyaml==5.4.1" "django-allauth==0.45.0" --no-build-isolation && \
-	poetry install --no-dev --no-interaction --no-ansi && \
+	poetry install --without dev --no-interaction --no-ansi && \
 	apk --purge del .build-deps
 
 # Setup user group

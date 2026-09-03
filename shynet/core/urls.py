@@ -1,11 +1,10 @@
-from django.contrib import admin
-from django.urls import include, path, reverse_lazy
-from django.views.generic import RedirectView
+from flask import Blueprint, redirect, url_for
 
 from . import views
 
-urlpatterns = [
-    path(
-        "", RedirectView.as_view(url=reverse_lazy("dashboard:dashboard")), name="index"
-    ),
-]
+core = Blueprint("core", __name__, template_folder="templates")
+
+
+@core.route("/")
+def index():
+    return redirect(url_for("dashboard.dashboard"))

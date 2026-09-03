@@ -1,5 +1,5 @@
-from django.views.generic import TemplateView
+from flask import render_template
 
 
-class IndexView(TemplateView):
-    template_name = "dashboard/pages/index.html"
+def index_view():
+    return render_template("dashboard/pages/index.html")

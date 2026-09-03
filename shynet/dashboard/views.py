@@ -1,21 +1,24 @@
-from django.conf import settings
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.messages.views import SuccessMessageMixin
-from django.core.cache import cache
-from django.db.models import Q, Count
-from django.shortcuts import get_object_or_404, reverse, redirect
-from django.views.generic import (
+from flask import redirect, url_for
+from flask_login import current_user
+from sqlalchemy import func, or_, select
+
+from analytics.models import Session, Hit
+from core.models import Service, _default_api_token, RESULTS_LIMIT
+from shynet import settings
+from shynet.cache import cache
+from shynet.extensions import db
+from shynet.views import (
     CreateView,
     DeleteView,
     DetailView,
     ListView,
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    SuccessMessageMixin,
     UpdateView,
     View,
+    get_object_or_404,
 )
-from rules.contrib.views import PermissionRequiredMixin
-
-from analytics.models import Session, Hit
-from core.models import Service, _default_api_token, RESULTS_LIMIT
 
 from .forms import ServiceForm
 from .mixins import DateRangeMixin
@@ -27,9 +30,16 @@ class DashboardView(LoginRequiredMixin, DateRangeMixin, ListView):
     paginate_by = settings.DASHBOARD_PAGE_SIZE
 
     def get_queryset(self):
-        return Service.objects.filter(
-            Q(owner=self.request.user) | Q(collaborators__in=[self.request.user])
-        ).distinct()
+        return (
+            select(Service)
+            .where(
+                or_(
+                    Service.owner_id == current_user.id,
+                    Service.collaborators.any(id=current_user.id),
+                )
+            )
+            .order_by(*Service.default_order())
+        )
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
@@ -49,11 +59,14 @@ class ServiceCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
     permission_required = "core.create_service"
 
     def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
+        self.object = form.save(None, commit=False)
+        self.object.owner = current_user._get_current_object()
+        db.session.add(self.object)
+        db.session.commit()
+        return redirect(self.get_success_url())
 
     def get_success_url(self):
-        return reverse("dashboard:service", kwargs={"pk": self.object.uuid})
+        return url_for("dashboard.service", pk=self.object.uuid)
 
 
 class ServiceView(
@@ -68,11 +81,18 @@ class ServiceView(
         data["script_protocol"] = "https://" if settings.SCRIPT_USE_HTTPS else "http://"
         data["stats"] = self.object.get_core_stats(data["start_date"], data["end_date"])
         data["RESULTS_LIMIT"] = RESULTS_LIMIT
-        data["object_list"] = Session.objects.filter(
-            service=self.get_object(),
-            start_time__lt=self.get_end_date(),
-            start_time__gt=self.get_start_date(),
-        ).order_by("-start_time")[:10]
+        data["object_list"] = list(
+            db.session.execute(
+                select(Session)
+                .where(
+                    Session.service_id == self.get_object().uuid,
+                    Session.start_time < self.get_end_date(),
+                    Session.start_time > self.get_start_date(),
+                )
+                .order_by(Session.start_time.desc())
+                .limit(10)
+            ).scalars()
+        )
         return data
 
 
@@ -86,7 +106,7 @@ class ServiceUpdateView(
     success_message = "Your changes were saved successfully."
 
     def get_success_url(self):
-        return reverse("dashboard:service", kwargs={"pk": self.object.uuid})
+        return url_for("dashboard.service", pk=self.object.uuid)
 
     def form_valid(self, *args, **kwargs):
         resp = super().form_valid(*args, **kwargs)
@@ -114,7 +134,7 @@ class ServiceDeleteView(
     success_message = "The service was deleted successfully."
 
     def get_success_url(self):
-        return reverse("dashboard:dashboard")
+        return url_for("dashboard.dashboard")
 
 
 class ServiceSessionsListView(
@@ -126,14 +146,18 @@ class ServiceSessionsListView(
     permission_required = "core.view_service"
 
     def get_object(self):
-        return get_object_or_404(Service, pk=self.kwargs.get("pk"))
+        return get_object_or_404(Service, self.kwargs.get("pk"))
 
     def get_queryset(self):
-        return Session.objects.filter(
-            service=self.get_object(),
-            start_time__lt=self.get_end_date(),
-            start_time__gt=self.get_start_date(),
-        ).order_by("-start_time")
+        return (
+            select(Session)
+            .where(
+                Session.service_id == self.get_object().uuid,
+                Session.start_time < self.get_end_date(),
+                Session.start_time > self.get_start_date(),
+            )
+            .order_by(Session.start_time.desc())
+        )
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
@@ -150,19 +174,26 @@ class ServiceLocationsListView(
     permission_required = "core.view_service"
 
     def get_object(self):
-        return get_object_or_404(Service, pk=self.kwargs.get("pk"))
+        return get_object_or_404(Service, self.kwargs.get("pk"))
 
     def get_queryset(self):
-        hits = Hit.objects.filter(
-            service=self.get_object(),
-            start_time__lt=self.get_end_date(),
-            start_time__gt=self.get_start_date(),
+        hit_filters = (
+            Hit.service_id == self.get_object().uuid,
+            Hit.start_time < self.get_end_date(),
+            Hit.start_time > self.get_start_date(),
         )
-        self.hit_count = hits.count()
+        self.hit_count = db.session.scalar(
+            select(func.count()).select_from(Hit).where(*hit_filters)
+        )
 
-        return (
-            hits.values("location").annotate(count=Count("location")).order_by("-count")
+        count = func.count(Hit.location).label("count")
+        rows = db.session.execute(
+            select(Hit.location, count)
+            .where(*hit_filters)
+            .group_by(Hit.location)
+            .order_by(count.desc())
         )
+        return [{"location": row[0], "count": row[1]} for row in rows]
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
@@ -183,12 +214,13 @@ class ServiceSessionView(LoginRequiredMixin, PermissionRequiredMixin, DetailView
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        data["object"] = get_object_or_404(Service, pk=self.kwargs.get("pk"))
+        data["object"] = get_object_or_404(Service, self.kwargs.get("pk"))
         return data
 
 
 class RefreshApiTokenView(LoginRequiredMixin, View):
-    def post(self, request):
-        request.user.api_token = _default_api_token()
-        request.user.save()
-        return redirect("account_change_password")
+    def post(self, **kwargs):
+        current_user.api_token = _default_api_token()
+        db.session.add(current_user._get_current_object())
+        db.session.commit()
+        return redirect(url_for("accounts.change_password"))

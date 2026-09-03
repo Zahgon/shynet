@@ -1,10 +1,10 @@
-{% load account %}{% user_display user as user_display %}{% load i18n %}{% autoescape off %}{% blocktrans with site_name=current_site.name site_domain=request.get_host %}Hi there,
+{% autoescape false %}{% set user_display_name = user_display(user) %}{% trans user_display=user_display_name, activate_url=activate_url %}Hi there,
 
 You're receiving this email because {{ user_display }} has listed this email as a valid contact address for their account.
 
 To confirm this is correct, go to {{ activate_url }}
-{% endblocktrans %}
-{% blocktrans with site_name=current_site.name site_domain=request.get_host %}Thank you,
+{% endtrans %}
+{% trans site_name=current_site.name %}Thank you,
 {{ site_name }}
-{% endblocktrans %}
+{% endtrans %}
 {% endautoescape %}

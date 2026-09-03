@@ -1,11 +1,10 @@
 """
-Django settings for Shynet.
+Settings for Shynet.
 
-For more information on this file, see
-https://docs.djangoproject.com/en/2.2/topics/settings/
-
-For the full list of settings and their values, see
-https://docs.djangoproject.com/en/2.2/ref/settings/
+Configuration is read from environment variables (optionally loaded from a
+`.env` file). The module-level constants below are consumed both by the Flask
+application factory (see `shynet.app.create_app`) and directly by application
+code, which imports this module directly.
 """
 
 import os
@@ -17,7 +16,7 @@ import sys
 import urllib.parse as urlparse
 
 # Messages
-from django.contrib.messages import constants as messages
+from . import messages
 
 # Load environment variables
 load_dotenv()
@@ -30,10 +29,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "onlyusethisindev")
+# `DJANGO_SECRET_KEY` is still read so that deployments predating the move to
+# Flask keep working without an environment change.
+SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv(
+    "DJANGO_SECRET_KEY", "onlyusethisindev"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
@@ -41,84 +43,45 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 # Do not default to "*": it disables Host header validation, allowing password
 # reset poisoning (attacker-controlled reset URLs sent to users).
 ALLOWED_HOSTS = (os.getenv("ALLOWED_HOSTS") or "localhost,127.0.0.1").split(",")
-CSRF_TRUSTED_ORIGINS = filter(lambda k: len(k) > 0, os.getenv("CSRF_TRUSTED_ORIGINS", "").split(","))
+CSRF_TRUSTED_ORIGINS = [
+    k for k in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if len(k) > 0
+]
 
 # Application definition
+#
+# Each of these is a Flask blueprint package; see `shynet.urls` for how they
+# are mounted onto the application.
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "django.contrib.sites",
-    "django.contrib.humanize",
-    "health_check",
-    "health_check.db",
-    "health_check.cache",
-    "rules.apps.AutodiscoverRulesConfig",
     "a17t",
     "core",
-    "dashboard.apps.DashboardConfig",
+    "dashboard",
     "analytics",
     "api",
-    "allauth",
-    "allauth.account",
-    "allauth.socialaccount",
-    "debug_toolbar",
-    "corsheaders",
+    "accounts",
 ]
 
-MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.sites.middleware.CurrentSiteMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
-]
+# Templates
 
-ROOT_URLCONF = "shynet.urls"
+TEMPLATE_TRIM_BLOCKS = False
+TEMPLATE_AUTO_RELOAD = DEBUG
 
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-            ],
-        },
-    },
-]
-
-WSGI_APPLICATION = "shynet.wsgi.application"
+WSGI_APPLICATION = "shynet.wsgi:application"
 
 
 # Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 if os.getenv("SQLITE", "False") == "True":
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3",
+            "ENGINE": "sqlite",
             "NAME": os.environ.get("DB_NAME", "/var/local/shynet/db/db.sqlite3"),
         }
     }
 else:
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "ENGINE": "postgresql+psycopg2",
             "NAME": os.environ.get("DB_NAME"),
             "USER": os.environ.get("DB_USER"),
             "PASSWORD": os.environ.get("DB_PASSWORD"),
@@ -148,23 +111,50 @@ if "DATABASE_URL" in os.environ:
         }
     )
     if url.scheme == "postgres":
-        DATABASES["default"]["ENGINE"] = "django.db.backends.postgresql_psycopg2"
+        DATABASES["default"]["ENGINE"] = "postgresql+psycopg2"
+
+
+def _build_database_uri(config):
+    """Turn a `DATABASES`-style dict into a SQLAlchemy connection URI."""
+    engine = config.get("ENGINE") or "sqlite"
+    if engine.startswith("sqlite"):
+        name = config.get("NAME") or ":memory:"
+        if name == ":memory:":
+            return "sqlite://"
+        return "sqlite:///" + name
+    userinfo = ""
+    if config.get("USER"):
+        userinfo = urlparse.quote(str(config["USER"]), safe="")
+        if config.get("PASSWORD"):
+            userinfo += ":" + urlparse.quote(str(config["PASSWORD"]), safe="")
+        userinfo += "@"
+    netloc = config.get("HOST") or ""
+    if config.get("PORT"):
+        netloc = f"{netloc}:{config['PORT']}"
+    return f"{engine}://{userinfo}{netloc}/{config.get('NAME') or ''}"
+
+
+SQLALCHEMY_DATABASE_URI = _build_database_uri(DATABASES["default"])
+SQLALCHEMY_ENGINE_OPTIONS = (
+    {"connect_args": DATABASES["default"]["OPTIONS"]}
+    if DATABASES["default"].get("OPTIONS")
+    else {}
+)
 
 # Password validation
-# https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "core.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME": "core.password_validation.MinimumLengthValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": "core.password_validation.CommonPasswordValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": "core.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -180,7 +170,7 @@ LOGGING = {
         },
         "simple": {"format": "{levelname} {message}", "style": "{"},
     },
-    "filters": {"require_debug_true": {"()": "django.utils.log.RequireDebugTrue"}},
+    "filters": {"require_debug_true": {"()": "shynet.logs.RequireDebugTrue"}},
     "handlers": {
         "console": {
             "level": "INFO",
@@ -190,13 +180,13 @@ LOGGING = {
         },
         "mail_admins": {
             "level": "ERROR",
-            "class": "django.utils.log.AdminEmailHandler",
+            "class": "shynet.logs.AdminEmailHandler",
             "filters": [],
         },
     },
     "loggers": {
-        "django": {"handlers": ["console"], "propagate": True},
-        "django.request": {
+        "shynet": {"handlers": ["console"], "propagate": True},
+        "shynet.request": {
             "handlers": ["mail_admins"],
             "level": "ERROR",
             "propagate": True,
@@ -205,7 +195,6 @@ LOGGING = {
 }
 
 # Internationalization
-# https://docs.djangoproject.com/en/2.2/topics/i18n/
 
 LANGUAGE_CODE = os.getenv("LANGUAGE_CODE", "en-us")
 
@@ -217,23 +206,24 @@ USE_L10N = True
 
 USE_TZ = True
 
+LOCALE_PATHS = [os.path.join(BASE_DIR, "translations")]
+
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = "/static/"
 STATIC_ROOT = "compiledstatic/"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 STATICFILES_FINDERS = [
-    "npm.finders.NpmFinder",
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+    "shynet.staticfiles.NpmFinder",
+    "shynet.staticfiles.AppDirectoriesFinder",
 ]
 
 # Redis
+
+CACHES = {"default": {"BACKEND": "SimpleCache", "LOCATION": ""}}
 if not DEBUG and os.getenv("REDIS_CACHE_LOCATION") is not None:
     CACHES = {
         "default": {
-            "BACKEND": "redis_cache.RedisCache",
+            "BACKEND": "RedisCache",
             "LOCATION": os.getenv("REDIS_CACHE_LOCATION"),
             "KEY_PREFIX": "v1_",  # Increment when migrations occur
         }
@@ -244,24 +234,28 @@ if not DEBUG and os.getenv("REDIS_CACHE_LOCATION") is not None:
 
 AUTH_USER_MODEL = "core.User"
 
-AUTHENTICATION_BACKENDS = (
-    "rules.permissions.ObjectPermissionBackend",
-    "django.contrib.auth.backends.ModelBackend",
-    "allauth.account.auth_backends.AuthenticationBackend",
-)
-
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_EMAIL_SUBJECT_PREFIX = ""
 ACCOUNT_USER_DISPLAY = lambda k: k.email
 ACCOUNT_SIGNUPS_ENABLED = os.getenv("ACCOUNT_SIGNUPS_ENABLED", "False") == "True"
 ACCOUNT_EMAIL_VERIFICATION = os.getenv("ACCOUNT_EMAIL_VERIFICATION", "none")
+# How long (in seconds) an email confirmation or password reset link is valid.
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_SECONDS = 3 * 24 * 60 * 60
+ACCOUNT_PASSWORD_RESET_EXPIRE_SECONDS = 3 * 24 * 60 * 60
 
+LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
+
+# How long a signed-in session stays valid, in seconds (two weeks).
+SESSION_COOKIE_AGE = int(os.getenv("SESSION_COOKIE_AGE", "1209600"))
+
+# Addresses that receive the mail_admins log handler's error reports. Empty
+# means the handler is a no-op.
+ADMINS = []
 
 SITE_ID = 1
 
@@ -294,18 +288,23 @@ MESSAGE_TAGS = {
 SERVER_EMAIL = os.getenv("SERVER_EMAIL", "Shynet <noreply@shynet.example.com>")
 DEFAULT_FROM_EMAIL = SERVER_EMAIL
 
+EMAIL_HOST = None
+EMAIL_PORT = 465
+EMAIL_HOST_USER = None
+EMAIL_HOST_PASSWORD = None
+EMAIL_USE_SSL = None
+EMAIL_USE_TLS = None
+
 if DEBUG or os.environ.get("EMAIL_HOST") is None:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    EMAIL_BACKEND = "shynet.mail.ConsoleBackend"
 else:
+    EMAIL_BACKEND = "shynet.mail.SmtpBackend"
     EMAIL_HOST = os.environ.get("EMAIL_HOST")
     EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 465))
     EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
     EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
     EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL")
     EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS")
-
-# Auto fields
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # NPM
 
@@ -341,7 +340,7 @@ NPM_FILE_PATTERNS = {
 ONLY_SUPERUSERS_CREATE = os.getenv("ONLY_SUPERUSERS_CREATE", "True") == "True"
 
 # Should the script use HTTPS to send the POST requests? The hostname is from
-# the django SITE default. (Edit it using the admin panel.)
+# the Shynet site default. (Edit it using the admin panel.)
 SCRIPT_USE_HTTPS = os.getenv("SCRIPT_USE_HTTPS", "True") == "True"
 
 # How frequently should the tracking script "phone home" with a heartbeat, in
@@ -379,6 +378,17 @@ USE_RELATIVE_MAX_IN_BAR_VISUALIZATION = (
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_METHODS = ["GET", "OPTIONS"]
+CORS_ALLOW_CREDENTIALS = False
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "authorization",
+    "content-type",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+CORS_EXPOSE_HEADERS = []
+CORS_PREFLIGHT_MAX_AGE = 86400
 
 # IPWare Precedence Options
 IPWARE_META_PRECEDENCE_ORDER = (
@@ -393,3 +403,45 @@ IPWARE_META_PRECEDENCE_ORDER = (
     'HTTP_VIA',
     'REMOTE_ADDR',
 )
+
+# Security headers; applied by `shynet.middleware`.
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
+
+
+def as_flask_config():
+    """The subset of the settings above that Flask and its extensions read."""
+    return {
+        "SECRET_KEY": SECRET_KEY,
+        "DEBUG": DEBUG,
+        "ALLOWED_HOSTS": ALLOWED_HOSTS,
+        "CSRF_TRUSTED_ORIGINS": CSRF_TRUSTED_ORIGINS,
+        "SQLALCHEMY_DATABASE_URI": SQLALCHEMY_DATABASE_URI,
+        "SQLALCHEMY_ENGINE_OPTIONS": SQLALCHEMY_ENGINE_OPTIONS,
+        "SQLALCHEMY_TRACK_MODIFICATIONS": False,
+        "BABEL_DEFAULT_LOCALE": LANGUAGE_CODE.replace("-", "_"),
+        "BABEL_DEFAULT_TIMEZONE": TIME_ZONE,
+        "BABEL_TRANSLATION_DIRECTORIES": ";".join(LOCALE_PATHS),
+        "CACHE_TYPE": CACHES["default"]["BACKEND"],
+        "CACHE_KEY_PREFIX": CACHES["default"].get("KEY_PREFIX", ""),
+        "CACHE_REDIS_URL": CACHES["default"].get("LOCATION") or None,
+        "MAIL_SERVER": EMAIL_HOST,
+        "MAIL_PORT": EMAIL_PORT,
+        "MAIL_USERNAME": EMAIL_HOST_USER,
+        "MAIL_PASSWORD": EMAIL_HOST_PASSWORD,
+        "MAIL_USE_SSL": EMAIL_USE_SSL in (True, "True", "true", "1"),
+        "MAIL_USE_TLS": EMAIL_USE_TLS in (True, "True", "true", "1"),
+        "MAIL_DEFAULT_SENDER": DEFAULT_FROM_EMAIL,
+        "MAIL_SUPPRESS_SEND": EMAIL_BACKEND == "shynet.mail.ConsoleBackend",
+        "MAIL_DEBUG": False,
+        "SESSION_COOKIE_HTTPONLY": True,
+        "SESSION_COOKIE_SAMESITE": "Lax",
+        "PERMANENT_SESSION_LIFETIME": SESSION_COOKIE_AGE,
+        "REMEMBER_COOKIE_DURATION": SESSION_COOKIE_AGE,
+        "REMEMBER_COOKIE_HTTPONLY": True,
+        "REMEMBER_COOKIE_SAMESITE": "Lax",
+        "DEBUG_TB_INTERCEPT_REDIRECTS": False,
+        "WTF_CSRF_TIME_LIMIT": None,
+    }

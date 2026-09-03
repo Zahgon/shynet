@@ -1,4 +1,3 @@
-{{ formset.management_form }}
 {% for form in formset %}
-  {% include "a17t/includes/form.html" with form=form %}
+  {% with form=form %}{% include "a17t/includes/form.html" %}{% endwith %}
 {% endfor %}

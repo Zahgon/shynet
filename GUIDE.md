@@ -6,6 +6,7 @@
 - [Heroku](#heroku)
 - [Render](#render)
 - [Updating Your Configuration](#updating-your-configuration)
+- [Upgrading an Existing Database](#upgrading-an-existing-database)
 - [Advanced Usage](#advanced-usage)
   * [Configuring a Reverse Proxy](#configuring-a-reverse-proxy)
     + [Cloudflare](#cloudflare)
@@ -40,7 +41,7 @@ Before continuing, please be sure to have the latest version of Docker installed
 
     2.2 SQLite doesn't need a server, just a file. Set `SQLITE=True` in the environment file and create a Docker volume to hold the persistent DB with `docker volume create shynet_db`. Then whenever you run the container include `-v shynet_db:/var/local/shynet/db:rw` to mount the volume into the container. See the [Docker documentation on volumes](https://docs.docker.com/storage/volumes/).
 
-3. Configure an environment file for Shynet, using [this file](/TEMPLATE.env) as a template. (This file is typically named `.env`.) Make sure you set the database settings, or Shynet won't be able to run. Make sure `ALLOWED_HOSTS` is set to your deployment's domain — leaving it as the `localhost` default will cause Django to reject requests to your public hostname, and setting it to `*` enables Host header injection attacks against the password reset flow.
+3. Configure an environment file for Shynet, using [this file](/TEMPLATE.env) as a template. (This file is typically named `.env`.) Make sure you set the database settings, or Shynet won't be able to run. Make sure `ALLOWED_HOSTS` is set to your deployment's domain — leaving it as the `localhost` default will cause Shynet to reject requests to your public hostname, and setting it to `*` enables Host header injection attacks against the password reset flow.
 
 4. Launch the Shynet server for the first time by running `docker run --env-file=<your env file> milesmcc/shynet:latest`. Provided you're using the default environment information (i.e., `PERFORM_CHECKS_AND_SETUP` is `True`), you'll see a few warnings about not having an admin user or host setup; these are normal. Don't worry — we'll do this in the next step. You only need to stop if you see a stacktrace about being unable to connect to the database.
 
@@ -98,6 +99,47 @@ Once your deploy has completed, use the **Render Shell** to configure your app:
 See the [Render docs](https://render.com/docs/deploy-shynet) for more information on deploying your application on Render.
 
 ---
+
+## Upgrading an Existing Database
+
+Shynet's schema is now managed with Alembic rather than the previous migration
+tool, so a database created by an older release has data but no Alembic history.
+Migrating it is a one-time, three-step operation. **Take a backup first.**
+
+1. Two tables need reconciling. The site table was renamed, and the account
+   tables are unchanged but must exist:
+
+   ```sql
+   ALTER TABLE django_site RENAME TO core_site;
+   ```
+
+   If your deployment predates email verification you may not have
+   `account_emailaddress` / `account_emailconfirmation`; in that case skip to
+   step 2 and run step 3 in reverse order (`stamp 0021_core_site`, then
+   `./manage.py migrate` to create the account tables).
+
+2. Tell Alembic the existing schema is already at the latest revision, so it
+   does not try to recreate tables that are already there:
+
+   ```
+   ./manage.py db stamp head
+   ```
+
+3. Confirm the result. This should report no outstanding work:
+
+   ```
+   ./manage.py startup_checks
+   ```
+
+   The first value is `True` when migrations are pending; you want `False`.
+
+Existing password hashes, sessions, services and analytics data all carry over
+untouched — passwords in particular use the same hash format as before, so
+everyone can sign in with their existing credentials.
+
+Two configuration names changed. `DJANGO_SECRET_KEY` is still read as a
+fallback, but rename it to `SECRET_KEY` in your environment file when
+convenient. Signed-out users will need to sign in again if you change its value.
 
 ## Advanced Usage
 
@@ -192,7 +234,7 @@ In some cases, it is useful to associate particular users on your platform with 
 
 If the Shynet script location (for either the pixel or the script) is, for example, `//shynet.example.com/ingress/your_service_uuid/pixel.gif` and `//shynet.example.com/ingress/your_service_uuid/script.js`, the URLs for primary-key enabled users would be `//shynet.example.com/ingress/your_service_uuid/USER_PRIMARY_KEY/pixel.gif` and `//shynet.example.com/ingress/your_service_uuid/USER_PRIMARY_KEY/script.js`.
 
-Adding this path can be done easily using server-side rendering. For example, here is a Django template that adds users' primary keys to the Shynet tracking script:
+Adding this path can be done easily using server-side rendering. For example, here is a template that adds users' primary keys to the Shynet tracking script:
 
 ```html
 {% if request.user.is_authenticated %}

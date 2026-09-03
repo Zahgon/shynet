@@ -1,24 +1,26 @@
+"""Dashboard template helpers.
+
+Every filter and tag the dashboard templates used, ported to plain functions;
+`shynet.templating` registers them on the Jinja environment under the same
+names.
+"""
+
 from datetime import timedelta
 from urllib.parse import urlparse
 import urllib
 
 import pycountry
-from django import template
-from django.conf import settings
-from django.utils import timezone
-from django.utils.html import escape
-from django.utils.safestring import SafeString
-from django.template.defaulttags import url as url_tag
+from flask import render_template, request, url_for
+from markupsafe import Markup, escape
 
-register = template.Library()
+from shynet import settings, timezone
 
 
-@register.filter
-def naturaldelta(timedelta):
-    if isinstance(timedelta, timezone.timedelta):
-        seconds = timedelta.seconds
+def naturaldelta(timedelta_value):
+    if isinstance(timedelta_value, timezone.timedelta):
+        seconds = timedelta_value.seconds
     else:
-        seconds = timedelta
+        seconds = timedelta_value
     string = ""
     if seconds // 3600 > 0:
         string += "{:02.0f}:".format(seconds // 3600)
@@ -27,7 +29,6 @@ def naturaldelta(timedelta):
     return string
 
 
-@register.filter
 def flag_class(isocode):
     if isocode:
         return "mr-1 flag-icon flag-icon-" + isocode.lower()
@@ -35,7 +36,6 @@ def flag_class(isocode):
         return "hidden"
 
 
-@register.filter
 def country_name(isocode):
     try:
         return pycountry.countries.get(alpha_2=isocode).name
@@ -43,7 +43,6 @@ def country_name(isocode):
         return "Unknown"
 
 
-@register.filter
 def datamap_id(isocode):
     try:
         return pycountry.countries.get(alpha_2=isocode).alpha_3
@@ -51,7 +50,6 @@ def datamap_id(isocode):
         return "UNKNOWN"
 
 
-@register.simple_tag
 def relative_stat_tone(
     start,
     end,
@@ -74,10 +72,9 @@ def relative_stat_tone(
         return neutral_classes
 
 
-@register.simple_tag
 def percent_change_display(start, end):
     if start == None or end == None:
-        return SafeString("&Delta; n/a")
+        return Markup("&Delta; n/a")
     if start == end:
         direction = "&Delta; "
     else:
@@ -94,15 +91,18 @@ def percent_change_display(start, end):
         else:
             pct_change = str(change) + "%"
 
-    return SafeString(direction + pct_change)
+    return Markup(direction + pct_change)
 
 
-@register.inclusion_tag("dashboard/includes/sidebar_footer.html")
 def sidebar_footer():
-    return {"version": settings.VERSION if settings.SHOW_SHYNET_VERSION else ""}
+    return Markup(
+        render_template(
+            "dashboard/includes/sidebar_footer.html",
+            version=settings.VERSION if settings.SHOW_SHYNET_VERSION else "",
+        )
+    )
 
 
-@register.inclusion_tag("dashboard/includes/stat_comparison.html")
 def compare(
     start,
     end,
@@ -118,25 +118,26 @@ def compare(
     if isinstance(end, timedelta):
         end = end.seconds
 
-    return {
-        "start": start,
-        "end": end,
-        "good": good,
-        "classes": classes,
-        "good_classes": good_classes,
-        "bad_classes": bad_classes,
-        "neutral_classes": neutral_classes,
-    }
+    return Markup(
+        render_template(
+            "dashboard/includes/stat_comparison.html",
+            start=start,
+            end=end,
+            good=good,
+            classes=classes,
+            good_classes=good_classes,
+            bad_classes=bad_classes,
+            neutral_classes=neutral_classes,
+        )
+    )
 
 
-@register.filter
 def startswith(text, starts):
     if isinstance(text, str):
         return text.startswith(starts)
     return False
 
 
-@register.filter
 def iconify(text):
     if not settings.SHOW_THIRD_PARTY_ICONS:
         return ""
@@ -180,74 +181,50 @@ def iconify(text):
         # This fallback works better than you'd think!
         domain = text + ".com"
 
-    return SafeString(
+    return Markup(
         f'<span class="icon mr-1 flex-none"><img src="https://icons.duckduckgo.com/ip3/{escape(domain)}.ico"></span>'
     )
 
 
-@register.filter
 def urldisplay(url):
     if url.startswith("http"):
         display_url = url.replace("http://", "").replace("https://", "")
-        return SafeString(
+        return Markup(
             f"<a href='{escape(url)}' title='{escape(url)}' rel='nofollow' class='flex items-center mr-1 truncate'>{iconify(url)}<span class='truncate'>{escape(display_url)}</span></a>"
         )
     else:
         return url
 
 
-class ContextualURLNode(template.Node):
-    """Extension of the Django URLNode to support including contextual parameters in URL outputs. In other words, URLs generated will keep the start and end date parameters."""
-
-    CONTEXT_PARAMS = ["startDate", "endDate"]
-
-    def __init__(self, urlnode):
-        self.urlnode = urlnode
-
-    def __repr__(self):
-        return self.urlnode.__repr__()
-
-    def render(self, context):
-        url = self.urlnode.render(context)
-        if self.urlnode.asvar:
-            url = context[self.urlnode.asvar]
-
-        url_parts = list(urlparse(url))
-        query = dict(urllib.parse.parse_qsl(url_parts[4]))
-
-        query.update(
-            {
-                param: context.request.GET.get(param)
-                for param in self.CONTEXT_PARAMS
-                if param in context.request.GET and param not in query
-            }
-        )
-
-        url_parts[4] = urllib.parse.urlencode(query)
-
-        url_final = urllib.parse.urlunparse(url_parts)
-
-        if self.urlnode.asvar:
-            context[self.urlnode.asvar] = url_final
-            return ""
-        else:
-            return url_final
+CONTEXT_PARAMS = ["startDate", "endDate"]
 
 
-@register.tag
-def contextual_url(*args, **kwargs):
-    urlnode = url_tag(*args, **kwargs)
-    return ContextualURLNode(urlnode)
+def contextual_url(endpoint, **kwargs):
+    """Build a URL that carries the current start/end date parameters along."""
+    url = url_for(endpoint, **kwargs)
+
+    url_parts = list(urlparse(url))
+    query = dict(urllib.parse.parse_qsl(url_parts[4]))
+
+    query.update(
+        {
+            param: request.args.get(param)
+            for param in CONTEXT_PARAMS
+            if param in request.args and param not in query
+        }
+    )
+
+    url_parts[4] = urllib.parse.urlencode(query)
+
+    return urllib.parse.urlunparse(url_parts)
 
 
-@register.filter
 def location_url(session):
     return settings.LOCATION_URL.replace("$LATITUDE", str(session.latitude)).replace(
         "$LONGITUDE", str(session.longitude)
     )
 
 
-@register.filter
 def percent(value, total):
     if total == 0:
         return "N/A"
@@ -260,7 +237,6 @@ def percent(value, total):
     return f"{percent:.1%}"
 
 
-@register.simple_tag
 def bar_width(count, max, total):
     if total == 0 or max == 0:
         return "0"

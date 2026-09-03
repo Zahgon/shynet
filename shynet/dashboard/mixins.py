@@ -1,23 +1,21 @@
 from datetime import datetime, time
 
-from django.utils import timezone
+from flask import request
+
+from shynet import timezone
 
 
 class DateRangeMixin:
     def get_start_date(self):
-        if self.request.GET.get("startDate") is not None:
-            found_time = timezone.datetime.strptime(
-                self.request.GET.get("startDate"), "%Y-%m-%d"
-            )
+        if request.args.get("startDate") is not None:
+            found_time = datetime.strptime(request.args.get("startDate"), "%Y-%m-%d")
             return timezone.make_aware(datetime.combine(found_time, time.min))
         else:
             return timezone.now() - timezone.timedelta(days=30)
 
     def get_end_date(self):
-        if self.request.GET.get("endDate") is not None:
-            found_time = timezone.datetime.strptime(
-                self.request.GET.get("endDate"), "%Y-%m-%d"
-            )
+        if request.args.get("endDate") is not None:
+            found_time = datetime.strptime(request.args.get("endDate"), "%Y-%m-%d")
             return timezone.make_aware(datetime.combine(found_time, time.max))
         else:
             return timezone.now()

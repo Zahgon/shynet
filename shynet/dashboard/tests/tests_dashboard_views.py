@@ -1,43 +1,30 @@
-from django.test import TestCase, RequestFactory
-from django.conf import settings
-from django.urls import reverse
 from core.factories import UserFactory
+from shynet import settings
 
-from dashboard.views import DashboardView
 
-
-class QuestionModelTests(TestCase):
-    def setUp(self):
-        # Every test needs access to the request factory.
-        self.factory = RequestFactory()
-        self.user = UserFactory()
-
-    def tearDown(self):
-        pass
-
-    def tests_unauthenticated_dashboard_view(self):
+class TestDashboardViews:
+    def tests_unauthenticated_dashboard_view(self, app, client):
         """
         GIVEN: Unauthenticated user
         WHEN: Accessing the dashboard view
         THEN: It's redirected to login page with NEXT url to dashboard
         """
         login_url = settings.LOGIN_URL
-        response = self.client.get(reverse("dashboard:dashboard"))
+        response = client.get("/dashboard/")
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.url, f"{login_url}?next={reverse('dashboard:dashboard')}"
-        )
+        assert response.status_code == 302
+        assert response.headers["Location"] == f"{login_url}?next=/dashboard/"
 
-    def tests_authenticated_dashboard_view(self):
+    def tests_authenticated_dashboard_view(self, app, client):
         """
         GIVEN: Authenticated user
         WHEN: Accessing the dashboard view
         THEN: It should respond with 200 and render the view
         """
-        request = self.factory.get(reverse("dashboard:dashboard"))
-        request.user = self.user
+        user = UserFactory()
+        with client.session_transaction() as session:
+            session["_user_id"] = str(user.id)
+            session["_fresh"] = True
 
-        # Use this syntax for class-based views.
-        response = DashboardView.as_view()(request)
-        self.assertEqual(response.status_code, 200)
+        response = client.get("/dashboard/")
+        assert response.status_code == 200

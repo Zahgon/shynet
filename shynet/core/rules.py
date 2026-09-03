@@ -1,5 +1,5 @@
-import rules
-from django.conf import settings
+from shynet import rules
+from shynet import settings
 
 
 @rules.predicate
@@ -16,7 +16,7 @@ def is_service_owner(user, service):
 
 @rules.predicate
 def is_service_collaborator(user, service):
-    return service.collaborators.filter(pk=user.pk).exists()
+    return user in service.collaborators
 
 
 rules.add_perm("core.view_service", is_service_owner | is_service_collaborator)

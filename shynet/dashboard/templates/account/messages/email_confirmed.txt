@@ -1,2 +1,1 @@
-{% load i18n %}
-{% blocktrans %}Confirmed {{email}}.{% endblocktrans %}
+{% trans email=email %}Confirmed {{email}}.{% endtrans %}

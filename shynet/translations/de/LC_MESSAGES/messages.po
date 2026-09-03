@@ -1,0 +1,828 @@
+# Shynet translations.
+# This file is distributed under the same license as the Shynet package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Shynet\n"
+"Report-Msgid-Bugs-To: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+#: a17t/templates/a17t/includes/pagination.html:5
+#: a17t/templates/a17t/includes/pagination.html:7
+msgid "Previous"
+msgstr "Zurück"
+
+#: a17t/templates/a17t/includes/pagination.html:10
+#: a17t/templates/a17t/includes/pagination.html:12
+msgid "Next"
+msgstr "Vor"
+
+#: analytics/models.py:18
+msgid "Service"
+msgstr "Dienst"
+
+#: analytics/models.py:24
+msgid "Identifier"
+msgstr "Kennung"
+
+#: analytics/models.py:29
+msgid "Start time"
+msgstr "Startzeit"
+
+#: analytics/models.py:32
+msgid "Last seen"
+msgstr "Zuletzt gesehen"
+
+#: analytics/models.py:36
+msgid "User agent"
+msgstr ""
+
+#: analytics/models.py:37
+msgid "Browser"
+msgstr ""
+
+#: analytics/models.py:38
+msgid "Device"
+msgstr "Gerät"
+
+#: analytics/models.py:42
+msgid "Phone"
+msgstr ""
+
+#: analytics/models.py:43
+msgid "Tablet"
+msgstr ""
+
+#: analytics/models.py:44
+msgid "Desktop"
+msgstr ""
+
+#: analytics/models.py:45
+msgid "Robot"
+msgstr ""
+
+#: analytics/models.py:46
+msgid "Other"
+msgstr "Andere"
+
+#: analytics/models.py:49
+msgid "Device type"
+msgstr "Gerätetyp"
+
+#: analytics/models.py:51
+msgid "OS"
+msgstr "Betriessystem"
+
+#: analytics/models.py:52
+msgid "IP"
+msgstr ""
+
+#: analytics/models.py:55
+msgid "Asn"
+msgstr ""
+
+#: analytics/models.py:56
+msgid "Country"
+msgstr "Land"
+
+#: analytics/models.py:57
+msgid "Longitude"
+msgstr "Längengrad"
+
+#: analytics/models.py:58
+msgid "Latitude"
+msgstr "Breitengrad"
+
+#: analytics/models.py:59
+msgid "Time zone"
+msgstr "Zeitzone"
+
+#: analytics/models.py:61
+msgid "Is bounce"
+msgstr "Absprung"
+
+#: analytics/models.py:64 analytics/models.py:100
+msgid "Session"
+msgstr "Sitzung"
+
+#: analytics/models.py:65
+msgid "Sessions"
+msgstr "Sitzungen"
+
+#: analytics/models.py:122
+msgid "Hit"
+msgstr "Besuch"
+
+#: analytics/models.py:123
+msgid "Hits"
+msgstr "Besuche"
+
+#: core/models.py:58
+msgid "Active"
+msgstr "Aktiv"
+
+#: core/models.py:58
+msgid "Archived"
+msgstr "Archiviert"
+
+#: core/models.py:61
+msgid "Name"
+msgstr "Name"
+
+#: core/models.py:63
+msgid "Owner"
+msgstr "Eigentümer"
+
+#: core/models.py:67
+msgid "Collaborators"
+msgstr "Mitarbeiter"
+
+#: core/models.py:70
+msgid "created"
+msgstr "Erstellt"
+
+#: core/models.py:71
+msgid "link"
+msgstr "Verweis"
+
+#: core/models.py:72
+msgid "origins"
+msgstr ""
+
+#: core/models.py:75
+msgid "status"
+msgstr "Status"
+
+#: core/models.py:77
+msgid "Respect dnt"
+msgstr "DNT beachten"
+
+#: core/models.py:78
+msgid "Ignore robots"
+msgstr "Robots ignorieren"
+
+#: core/models.py:79
+msgid "Collect ips"
+msgstr "IPs erfassen"
+
+#: core/models.py:82
+msgid "Igored ips"
+msgstr "IPs ignorieren"
+
+#: core/models.py:86
+msgid "Hide referrer regex"
+msgstr "Referrer Regex ausblenden"
+
+#: core/models.py:88
+msgid "Script inject"
+msgstr ""
+
+#: core/models.py:92
+msgid "Services"
+msgstr "Dienste"
+
+#: dashboard/forms.py:28 forms.py:29 forms.py:30 forms.py:59
+msgid "Yes"
+msgstr "Ja"
+
+#: dashboard/forms.py:28 forms.py:29 forms.py:30 forms.py:59
+msgid "No"
+msgstr "Nein"
+
+#: dashboard/forms.py:35
+msgid "Allowed origins"
+msgstr "Erlaubte origins"
+
+#: dashboard/forms.py:36
+msgid "Respect DNT"
+msgstr "DNT beachten"
+
+#: dashboard/forms.py:37
+msgid "Ignored IP addresses"
+msgstr "Ignorierte IP Adressen"
+
+#: dashboard/forms.py:39
+msgid "Hide specific referrers"
+msgstr "Bestimmte Referrer nicht zeigen"
+
+#: dashboard/forms.py:40
+msgid "Additional injected JS"
+msgstr "Zusätzlich injiziertes JS"
+
+#: dashboard/forms.py:43
+msgid "What should the service be called?"
+msgstr "Welchen Namen soll der Dienst haben?"
+
+#: dashboard/forms.py:44
+msgid "What's the service's primary URL?"
+msgstr "Was ist die primäre URL des Dienstes?"
+
+#: dashboard/forms.py:46
+msgid ""
+"At what origins does the service operate? Use commas to separate multiple "
+"values. This sets CORS headers, so use '*' if you're not sure (or don't "
+"care)."
+msgstr ""
+"Mit welchen origins arbeitet der Dienst? Verwenden Sie Kommas, um mehrere "
+"Werte zu trennen. Dies setzt den CORS-Header. Verwenden Sie '*', wenn Sie "
+"nicht sicher sind (oder es egal ist)."
+
+#: dashboard/forms.py:48
+msgid ""
+"Should visitors who have enabled <a href='https://en.wikipedia.org/wiki/"
+"Do_Not_Track'>Do Not Track</a> be excluded from all data?"
+msgstr ""
+"Sollen Besucher, die <a href='https://en.wikipedia.org/wiki/Do_Not_Track'>Do "
+"Not Track</a> aktiviert haben, von allen Daten ausgeschlossen werden?"
+
+#: dashboard/forms.py:49
+msgid ""
+"A comma-separated list of IP addresses or IP ranges (IPv4 and IPv6) to "
+"exclude from tracking (e.g., '192.168.0.2, 127.0.0.1/32')."
+msgstr ""
+"Eine Komma-separierte Liste von IP Adressen oder IP Bereichen (IPv4 and "
+"IPv6), die vom Tracking ausgeschlossen werden sollen (z.B. '192.168.0.2, "
+"127.0.0.1/32')."
+
+#: dashboard/forms.py:50
+msgid "Should sessions generated by bots be excluded from tracking?"
+msgstr ""
+"Sollten von Bots generierte Sitzungen vom Tracking ausgeschlossen werden?"
+
+#: dashboard/forms.py:51
+msgid ""
+"Any referrers that match this <a href='https://regexr.com/'>RegEx</a> will "
+"not be listed in the referrer summary. Sessions will still be tracked "
+"normally. No effect if left blank."
+msgstr ""
+"Alle Referrer, die diesem <a href='https://regexr.com/'>RegEx</a> "
+"entsprechen, werden nicht in der Referrer-Zusammenfassung aufgeführt. Die "
+"Sitzungen werden weiterhin normal verfolgt."
+
+#: dashboard/forms.py:52
+msgid ""
+"Optional additional JavaScript to inject at the end of the Shynet script. "
+"This code will be injected on every page where this service is installed."
+msgstr ""
+"Optionales zusätzliches JavaScript, das am Ende des Shynet-Skripts eingefügt "
+"wird. Dieser Code wird auf jeder Seite eingeschleust, auf der dieser Dienst "
+"installiert ist."
+
+#: dashboard/forms.py:56
+msgid "IP address collection is disabled globally by your administrator."
+msgstr ""
+"Die Erfassung von IP-Adressen wurde vom Administrator global deaktiviert."
+
+#: dashboard/forms.py:58
+msgid ""
+"Should individual IP addresses be collected? IP metadata (location, host, "
+"etc) will still be collected."
+msgstr ""
+"Sollten einzelne IP-Adressen erfasst werden? IP-Metadaten (Standort, Host, "
+"usw.) werden weiterhin erfasst."
+
+#: dashboard/forms.py:71
+msgid ""
+"Which users on this Shynet instance should have read-only access to this "
+"service? (Comma separated list of emails.)"
+msgstr ""
+"Welche Benutzer dieser Shynet-Instanz sollen Lesezugriff auf diesen Dienst "
+"haben? (Kommaseparierte Liste von E-Mails.)"
+
+#: dashboard/templates/account/account_inactive.html:5
+#: dashboard/templates/account/account_inactive.html:6
+msgid "Account Inactive"
+msgstr "Konto inaktiv"
+
+#: dashboard/templates/account/account_inactive.html:9
+msgid "This account is inactive."
+msgstr "Dieses Konto ist inaktiv"
+
+#: dashboard/templates/account/email.html:5 templates/account/email.html:6
+msgid "Email Addresses"
+msgstr "E-Mail Adressen"
+
+#: dashboard/templates/account/email.html:12
+msgid "These are your known email addresses:"
+msgstr "Ihre bekannten E-Mail Adressen:"
+
+#: dashboard/templates/account/email.html:26
+msgid "Verified"
+msgstr "Verifiziert"
+
+#: dashboard/templates/account/email.html:28
+msgid "Unverified"
+msgstr "Unverifiziert"
+
+#: dashboard/templates/account/email.html:30
+msgid "Primary"
+msgstr "Primär"
+
+#: dashboard/templates/account/email.html:36
+msgid "Make Primary"
+msgstr "Als primär kennzeichnen"
+
+#: dashboard/templates/account/email.html:37
+msgid "Resend Verification"
+msgstr "Verifikation erneut senden"
+
+#: dashboard/templates/account/email.html:38
+msgid "Remove"
+msgstr "Entfernen"
+
+#: dashboard/templates/account/email.html:46
+msgid ""
+"You currently do not have an email address associated with your account. "
+"Without one, you won't be able to reset your password, receive "
+"notifications, etc."
+msgstr ""
+"Sie haben noch keine E-Mail Adresse mit Ihrem Konto verknüpft. Ohne diese "
+"können Sie Ihr Kennwort nicht zurücksetzen, keine Benachrichtigungen "
+"erhalten etc."
+
+#: dashboard/templates/account/email.html:57
+msgid "Add Address"
+msgstr "Adresse hinzufügen"
+
+#: dashboard/templates/account/email.html:66
+msgid "Do you really want to remove the selected email address?"
+msgstr "Wollen Sie diese E-Mail Adresse wirkliche löschen?"
+
+#: dashboard/templates/account/email/email_confirmation_message.txt:1
+#, python-format
+msgid ""
+"Hi there,\n"
+"\n"
+"You're receiving this email because %(user_display)s has listed this email "
+"as a valid contact address for their account.\n"
+"\n"
+"To confirm this is correct, go to %(activate_url)s\n"
+msgstr ""
+"Hallo,\n"
+"\n"
+"Sie erhalten diese E-Mail, da der Benutzer %(user_display)s diese Adresse "
+"als gültige Kontakt-Adressse für sein Konto angegeben hat.\n"
+"\n"
+"Um die E-Mail Adresse zu bestätigen, gehen Sie auf %(activate_url)s\n"
+
+#: dashboard/templates/account/email/email_confirmation_message.txt:7
+#: dashboard/templates/account/email/password_reset_key_message.txt:9
+#, python-format
+msgid ""
+"Thank you,\n"
+"%(site_name)s\n"
+msgstr ""
+
+#: dashboard/templates/account/email/email_confirmation_subject.txt:3
+#: dashboard/templates/account/email_confirm.html:6
+#: dashboard/templates/account/email_confirm.html:7
+msgid "Confirm Email Address"
+msgstr "E-Mail Adresse bestätigen"
+
+#: dashboard/templates/account/email/password_reset_key_message.txt:1
+msgid ""
+"Hi there,\n"
+"\n"
+"You're receiving this email because you or someone else has requested a "
+"password for your account.\n"
+"\n"
+"This message can be safely ignored if you did not request a password reset. "
+"Click the link below to reset your password."
+msgstr ""
+"Hallo,\n"
+"\n"
+"Sie erhalten diese E-Mail, weil Sie oder jemand anderes ein Kennwort für Ihr "
+"Konto angefordert hat.\n"
+"\n"
+"Sie können diese Nachricht ignorieren, wenn Sie kein Kennwort angefordert "
+"haben. Klicken Sie auf den unten stehenden Link, um Ihr Kennwort "
+"zurückzusetzen."
+
+#: dashboard/templates/account/email/password_reset_key_subject.txt:3
+msgid "Password Reset Email"
+msgstr "Kennwort zurücksetzen E-Mail"
+
+#: dashboard/templates/account/email_confirm.html:15
+#, python-format
+msgid ""
+"Please confirm that <a\n"
+"        href=\"mailto:%(email)s\">%(email)s</a> is a valid email where we "
+"can reach you."
+msgstr ""
+"Bitte bestätigen Sie, dass <a\n"
+"        href=\"mailto:%(email)s\">%(email)s</a> eine gültige E-Mail Adress "
+"ist, unter der wie Sie erreichen können."
+
+#: dashboard/templates/account/email_confirm.html:21
+msgid "Confirm"
+msgstr "Bestätigen"
+
+#: dashboard/templates/account/email_confirm.html:28
+#, python-format
+msgid ""
+"This email confirmation link expired or is invalid. Please <a href="
+"\"%(email_url)s\">issue a new\n"
+"        email confirmation request</a>."
+msgstr ""
+"Diese Bestätigungs-E-Mail ist abgelaufen oder ungültig. Bitte <a href="
+"\"%(email_url)s\">fordern Sie eine neue\n"
+"        Bestätigungs-E-Mail</a>. an"
+
+#: dashboard/templates/account/login.html:6 templates/account/login.html:7
+#: dashboard/templates/account/login.html:19
+msgid "Sign In"
+msgstr "Anmelden"
+
+#: dashboard/templates/account/login.html:20 templates/account/password_reset.html:21
+msgid "Reset Password"
+msgstr "Kennwort zurücksetzen"
+
+#: dashboard/templates/account/logout.html:5 templates/account/logout.html:6
+#: dashboard/templates/account/logout.html:16
+msgid "Sign Out"
+msgstr "Abmelden"
+
+#: dashboard/templates/account/logout.html:9
+msgid "Are you sure you want to sign out?"
+msgstr "Sind Sie sicher, dass Sie sich abmelden wollen?"
+
+#: dashboard/templates/account/messages/cannot_delete_primary_email.txt:2
+#, python-format
+msgid "You cannot remove your primary email address (%(email)s)."
+msgstr "Sie können Ihre primäre E-Mail Adresse nicht entfernen (%(email)s)."
+
+#: dashboard/templates/account/messages/email_confirmation_sent.txt:2
+#, python-format
+msgid "Confirmation email sent to %(email)s."
+msgstr "Bestätigungs-E-Mail gesendet an %(email)s."
+
+#: dashboard/templates/account/messages/email_confirmed.txt:2
+#, python-format
+msgid "Confirmed %(email)s."
+msgstr "%(email)s bestätigt."
+
+#: dashboard/templates/account/messages/email_deleted.txt:2
+#, python-format
+msgid "Removed email address %(email)s."
+msgstr "E-Mail-Adresse %(email)s entfernt."
+
+#: dashboard/templates/account/messages/logged_in.txt:4
+#, python-format
+msgid "Successfully signed in as %(name)s."
+msgstr "Sid sind angemeldet als %(name)s"
+
+#: dashboard/templates/account/messages/logged_out.txt:2
+msgid "You have signed out."
+msgstr "Sie haben sich abgemeldet."
+
+#: dashboard/templates/account/messages/password_changed.txt:2
+msgid "Password successfully changed."
+msgstr "Ihr Kennwort wurde erfolgreich geändert."
+
+#: dashboard/templates/account/messages/password_set.txt:2
+msgid "Password successfully set."
+msgstr "Kennwort erfolgreich gesetzt."
+
+#: dashboard/templates/account/messages/primary_email_set.txt:2
+msgid "New primary email address set."
+msgstr "Eine neue primäre E-Mail Adresse wurde gesetzt."
+
+#: dashboard/templates/account/messages/unverified_primary_email.txt:2
+msgid "Your primary email address must be verified."
+msgstr "Ihre primäre E-Mail-Adresse muss verifiziert werden."
+
+#: dashboard/templates/account/password_change.html:5
+#: dashboard/templates/account/password_change.html:6
+#: dashboard/templates/account/password_change.html:12
+#: dashboard/templates/account/password_reset_from_key.html:4
+#: dashboard/templates/account/password_reset_from_key.html:5
+#: dashboard/templates/account/password_reset_from_key.html:16
+#: dashboard/templates/account/password_reset_from_key_done.html:4
+#: dashboard/templates/account/password_reset_from_key_done.html:5
+msgid "Change Password"
+msgstr "Kennwort ändern"
+
+#: dashboard/templates/account/password_reset.html:6
+#: dashboard/templates/account/password_reset.html:7
+#: dashboard/templates/account/password_reset_done.html:6
+#: dashboard/templates/account/password_reset_done.html:7
+msgid "Password Reset"
+msgstr "Kennwort zurücksetzen"
+
+#: dashboard/templates/account/password_reset.html:15
+msgid ""
+"Forgotten your password? Enter your email address below, and we'll send you "
+"an email to reset it."
+msgstr ""
+"Haben Sie Ihr Kennwort vergessen? Geben Sie unten Ihre E-Mail-Adresse ein, "
+"und wir senden Ihnen eine E-Mail, um es zurückzusetzen."
+
+#: dashboard/templates/account/password_reset_done.html:14
+msgid ""
+"We have sent you an email with a password reset link. Please try again if "
+"you do not receive it within a few minutes."
+msgstr ""
+"Wir haben Ihnen eine E-Mail mit einem Link zum Zurücksetzen des Passworts "
+"geschickt. Bitte versuchen Sie es erneut, wenn Sie ihn nicht innerhalb "
+"weniger Minuten erhalten."
+
+#: dashboard/templates/account/password_reset_from_key.html:10
+#, python-format
+msgid ""
+"The password reset link was invalid, possibly because it has already been "
+"used.  Please request a <a href=\"%(passwd_reset_url)s\">new password reset</"
+"a>."
+msgstr ""
+"Der Link zum Zurücksetzen des Kennworts war ungültig, möglicherweise weil er "
+"bereits verwendet wurde.  Bitte fordern Sie eine <a href="
+"\"%(passwd_reset_url)s\">neue Kennwortrücksetzung</a> an."
+
+#: dashboard/templates/account/password_reset_from_key.html:19
+#: dashboard/templates/account/password_reset_from_key_done.html:8
+msgid "Your password is now changed."
+msgstr "Ihr Kennwort wurde geändert."
+
+#: dashboard/templates/account/password_set.html:5 templates/account/password_set.html:6
+#: dashboard/templates/account/password_set.html:12
+msgid "Set Password"
+msgstr "Kennwort setzen"
+
+#: dashboard/templates/account/signup.html:5 templates/account/signup.html:6
+#: dashboard/templates/account/signup.html:17
+msgid "Sign Up"
+msgstr "Registrieren"
+
+#: dashboard/templates/account/signup.html:9
+#, python-format
+msgid ""
+"Already have an account? Then please <a href=\"%(login_url)s\">sign in</a> "
+"instead."
+msgstr ""
+"Sie haben bereits ein Konto? Dann melden Sie sich bitt<a href=\"%(login_url)s"
+"\">sign in</a> "
+
+#: dashboard/templates/account/signup_closed.html:5
+#: dashboard/templates/account/signup_closed.html:6
+msgid "Sign Up Closed"
+msgstr "Registrierung geschlossen"
+
+#: dashboard/templates/account/signup_closed.html:9
+msgid "Public sign-ups are not allowed at this time."
+msgstr "Öffentliche Registrierungen sind zur Zeit nicht erlaubt."
+
+#: dashboard/templates/account/snippets/already_logged_in.html:6
+msgid "Note"
+msgstr "Hinweis"
+
+#: dashboard/templates/account/snippets/already_logged_in.html:6
+#, python-format
+msgid "you are already logged in as %(user_display)s."
+msgstr "Sie sind bereits als %(user_display)s angemeldet."
+
+#: dashboard/templates/account/verification_sent.html:5
+#: dashboard/templates/account/verification_sent.html:6
+#: dashboard/templates/account/verified_email_required.html:5
+#: dashboard/templates/account/verified_email_required.html:6
+msgid "Verify Email Address"
+msgstr "E-Mail Adresse verifizieren"
+
+#: dashboard/templates/account/verification_sent.html:9
+msgid ""
+"We have sent an email to you for verification. Follow the link provided to "
+"finalize the signup process. Please try to log in again if you do not "
+"receive it within a few minutes."
+msgstr ""
+"Wir haben Ihnen eine E-Mail zur Verifizierung gesendet. Folgen Sie dem "
+"enthaltenen Link, um den Registrierungsprozess abzuschließen. Versuchen Sie "
+"sich erneut anzumelden, falls Sie die E-Mail nicht innerhalb weniger Minuten "
+"erhalten."
+
+#: dashboard/templates/account/verified_email_required.html:11
+msgid ""
+"This part of the site requires us to verify that\n"
+"you are who you claim to be. For this purpose, we require that you\n"
+"verify ownership of your email address. "
+msgstr ""
+"Dieser Teil der Website erfordert eine Überprüfung, dass Sie derjenige "
+"sind,\n"
+"der Sie vorgeben zu sein. Zu diesem Zweck verlangen wir, dass Sie\n"
+"den Besitz Ihrer E-Mail-Adresse bestätigen. "
+
+#: dashboard/templates/account/verified_email_required.html:15
+msgid ""
+"We have sent an email to you for\n"
+"verification. Please click on the link inside this email. Please\n"
+"try again if you do not receive it within a few minutes."
+msgstr ""
+"Wir haben Ihnen eine E-Mail zur Überprüfung gesendet.\n"
+"Bitte klicken Sie auf den Link in dieser E-Mail. Bitte\n"
+"versuchen Sie es erneut, wenn Sie die E-Mail nicht innerhalb \n"
+"weniger Minuten erhalten."
+
+#: dashboard/templates/account/verified_email_required.html:19
+#, python-format
+msgid ""
+"<strong>Note:</strong> you can still <a href=\"%(email_url)s\">change your "
+"email address</a>."
+msgstr ""
+"<strong>Hinweis:</strong> Sie können Ihre E-Mail-Adresse noch <a href="
+"\"%(email_url)s\">ändern</a>."
+
+#: dashboard/templates/base.html:60
+msgid "+ Create"
+msgstr "+ Neu"
+
+#: dashboard/templates/base.html:69
+msgid "Collaborations"
+msgstr "Zusammenarbeit"
+
+#: dashboard/templates/base.html:81
+msgid "Account"
+msgstr "Konto"
+
+#: dashboard/templates/dashboard/includes/service_form.html:8
+msgid "Advanced settings"
+msgstr "Erweiterte Einstellungen"
+
+#: dashboard/templates/dashboard/includes/service_overview.html:29
+#: dashboard/templates/dashboard/pages/service.html:60
+msgid "Bounce Rate"
+msgstr "Absprungrate"
+
+#: dashboard/templates/dashboard/includes/service_overview.html:40
+msgid "Avg. Duration"
+msgstr "Durchschn. Dauer"
+
+#: dashboard/templates/dashboard/includes/session_list.html:5
+msgid "Session Start"
+msgstr "Sitzungsstart"
+
+#: dashboard/templates/dashboard/includes/session_list.html:6
+msgid "Identity"
+msgstr "Kennung"
+
+#: dashboard/templates/dashboard/includes/session_list.html:7
+#: dashboard/templates/dashboard/pages/service_session.html:43
+msgid "Network"
+msgstr "Netzwerk"
+
+#: dashboard/templates/dashboard/includes/session_list.html:8
+#: dashboard/templates/dashboard/pages/service.html:73
+#: dashboard/templates/dashboard/pages/service_session.html:81
+msgid "Duration"
+msgstr "Dauer"
+
+#: dashboard/templates/dashboard/includes/session_list.html:36
+msgid "No data yet"
+msgstr "Noch keine Daten"
+
+#: dashboard/templates/dashboard/pages/dashboard.html:16
+msgid "New Service"
+msgstr "Neuer Dienst"
+
+#: dashboard/templates/dashboard/pages/index.html:6
+#: dashboard/templates/dashboard/pages/service_session_list.html:9
+msgid "Analytics"
+msgstr "Analytik"
+
+#: dashboard/templates/dashboard/pages/index.html:8
+msgid "Log In"
+msgstr "Anmelden"
+
+#: dashboard/templates/dashboard/pages/service.html:9
+msgid "Manage"
+msgstr "Verwalten"
+
+#: dashboard/templates/dashboard/pages/service.html:17
+msgid ""
+"This service hasn't collected any data yet. To get started, place the "
+"following code snippet at the end of the <code>&lt;body&gt;</code> tag on "
+"any page you'd like to track."
+msgstr ""
+
+#: dashboard/templates/dashboard/pages/service.html:29
+#: dashboard/templates/dashboard/pages/service.html:158
+#: dashboard/templates/dashboard/pages/service.html:192
+#: dashboard/templates/dashboard/pages/service.html:226
+#: dashboard/templates/dashboard/pages/service.html:260
+#: dashboard/templates/dashboard/pages/service.html:295
+msgid "sessions"
+msgstr "Sitzungen"
+
+#: dashboard/templates/dashboard/pages/service.html:47
+msgid "Load Time"
+msgstr "Ladezeit"
+
+#: dashboard/templates/dashboard/pages/service.html:86
+msgid "Hits/Session"
+msgstr "Besuche/Sitzung"
+
+#: dashboard/templates/dashboard/pages/service.html:109
+#: dashboard/templates/dashboard/pages/service_session.html:51
+msgid "Location"
+msgstr "Ort"
+
+#: dashboard/templates/dashboard/pages/service.html:133
+msgid "No data yet..."
+msgstr "Noch keine Daten..."
+
+#: dashboard/templates/dashboard/pages/service.html:141
+msgid "Sessions by Geography"
+msgstr "Sitzungen nach Geograpie"
+
+#: dashboard/templates/dashboard/pages/service.html:143
+msgid "view table"
+msgstr "Tabellenansicht"
+
+#: dashboard/templates/dashboard/pages/service.html:191
+msgid "Referrer"
+msgstr ""
+
+#: dashboard/templates/dashboard/pages/service.html:225
+msgid "Operating System"
+msgstr "Betriebssystem"
+
+#: dashboard/templates/dashboard/pages/service.html:294
+#: dashboard/templates/dashboard/pages/service_session.html:35
+msgid "Device Type"
+msgstr "Gerätetyp"
+
+#: dashboard/templates/dashboard/pages/service.html:329
+msgid "View more sessions"
+msgstr "Weitere Sitzungen"
+
+#: dashboard/templates/dashboard/pages/service_create.html:5
+#: dashboard/templates/dashboard/pages/service_create.html:8
+msgid "Create Service"
+msgstr "Neuer Dienst"
+
+#: dashboard/templates/dashboard/pages/service_create.html:16
+msgid "Create"
+msgstr "Neu"
+
+#: dashboard/templates/dashboard/pages/service_create.html:17
+#: dashboard/templates/dashboard/pages/service_update.html:30
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: dashboard/templates/dashboard/pages/service_delete.html:5
+#: dashboard/templates/dashboard/pages/service_update.html:33
+msgid "Delete"
+msgstr "Löschen"
+
+#: dashboard/templates/dashboard/pages/service_delete.html:12
+msgid ""
+"Are you sure you want to delete this service? All of its analytics and "
+"associated data will be permanently deleted."
+msgstr ""
+"Sind Sie sicher, dass Sie diesen Dienst löschen wollen? Alle damit "
+"verbundenen Daten werden unwiederruflich gelöscht."
+
+#: dashboard/templates/dashboard/pages/service_session.html:54
+msgid "Open in Maps"
+msgstr "In Karte öffnen"
+
+#: dashboard/templates/dashboard/pages/service_session.html:56
+msgid "Unknown"
+msgstr "Unbekannt"
+
+#: dashboard/templates/dashboard/pages/service_session.html:85
+msgid "Load"
+msgstr "Laden"
+
+#: dashboard/templates/dashboard/pages/service_session.html:89
+msgid "Tracker"
+msgstr ""
+
+#: dashboard/templates/dashboard/pages/service_update.html:5
+msgid "Management"
+msgstr "Verwaltung"
+
+#: dashboard/templates/dashboard/pages/service_update.html:8
+msgid "View"
+msgstr "Ansicht"
+
+#: dashboard/templates/dashboard/pages/service_update.html:13
+msgid "Installation"
+msgstr ""
+
+#: dashboard/templates/dashboard/pages/service_update.html:15
+msgid ""
+"Place the following snippet at the end of the <code>&lt;body&gt;</code> tag "
+"on any page you'd like to track."
+msgstr ""
+"Kopieren Sie den folgenden Code ans Ende des <code>&lt;body&gt;</code> Tags "
+"in allen Seiten, die Sie tracken möchten."
+
+#: dashboard/templates/dashboard/pages/service_update.html:21
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: dashboard/templates/dashboard/pages/service_update.html:29
+msgid "Save"
+msgstr "Speichern"

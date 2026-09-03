@@ -1,5 +1,2 @@
-from django.apps import AppConfig
-
-
-class AnalyticsConfig(AppConfig):
+class AnalyticsConfig:
     name = "analytics"

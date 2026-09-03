@@ -1,19 +1,16 @@
-import traceback
-from django.utils.timezone import now
-from django.utils.timezone import timedelta
+from logging import info
 import random
 import uuid
 
-from django.conf import settings
-from django.contrib.sites.models import Site
-from django.core.management.base import BaseCommand, CommandError
-from django.utils.crypto import get_random_string
-import user_agents
-from logging import info
+import click
+from flask.cli import with_appcontext
+from sqlalchemy import select
 
-from core.models import User, Service
 from analytics.models import Session, Hit
 from analytics.tasks import ingress_request
+from core.models import User, Service
+from shynet.extensions import db
+from shynet.timezone import now, timedelta
 
 LOCATIONS = [
     "/",
@@ -49,69 +46,58 @@ USER_AGENTS = [
 ]
 
 
-class Command(BaseCommand):
-    help = "Configures a Shynet demo service"
+@click.command("demo")
+@click.argument("name", type=str)
+@click.argument("owner_email", type=str)
+@click.argument("avg", type=int)
+@click.argument("deviation", type=float, default=0.4)
+@click.argument("days", type=int)
+@click.argument("load_time", type=float, default=1000)
+@with_appcontext
+def command(name, owner_email, avg, deviation, days, load_time):
+    """Configures a Shynet demo service"""
+    owner = db.session.scalar(select(User).where(User.email == owner_email))
+    service = Service(name=name, owner=owner)
+    db.session.add(service)
+    db.session.commit()
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "name",
-            type=str,
-        )
-        parser.add_argument("owner_email", type=str)
-        parser.add_argument(
-            "avg",
-            type=int,
-        )
-        parser.add_argument("deviation", type=float, default=0.4)
-        parser.add_argument(
-            "days",
-            type=int,
-        )
-        parser.add_argument("load_time", type=float, default=1000)
+    print(
+        f"Created demo service `{service.name}` (uuid: `{service.uuid}`, owner: {owner})"
+    )
 
-    def handle(self, *args, **options):
-        owner = User.objects.get(email=options.get("owner_email"))
-        service = Service.objects.create(name=options.get("name"), owner=owner)
+    # Go through each day requested, creating sessions and hits
+    for days_ago in range(days):
+        day = (now() - timedelta(days=days_ago)).replace(hour=0, minute=0, second=0)
+        print(f"Populating info for {day}...")
+        ips = [
+            ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
+            for _ in range(avg)
+        ]
 
-        print(
-            f"Created demo service `{service.name}` (uuid: `{service.uuid}`, owner: {owner})"
-        )
+        n = avg + random.randrange(int(-1 * deviation * avg), int(deviation * avg))
+        for _ in range(n):
+            time = day + timedelta(
+                hours=random.randrange(0, 23),
+                minutes=random.randrange(0, 59),
+                seconds=random.randrange(0, 59),
+            )
+            ip = random.choice(ips)
+            hit_load_time = random.normalvariate(load_time, 500)
+            referrer = random.choice(REFERRERS)
+            location = "https://example.com" + random.choice(LOCATIONS).replace(
+                "{rand}", str(random.randint(0, n))
+            )
+            user_agent = random.choice(USER_AGENTS)
+            ingress_request(
+                service.uuid,
+                "JS",
+                time,
+                {"loadTime": hit_load_time, "referrer": referrer},
+                ip,
+                location,
+                user_agent,
+            )
 
-        # Go through each day requested, creating sessions and hits
-        for days in range(options.get("days")):
-            day = (now() - timedelta(days=days)).replace(hour=0, minute=0, second=0)
-            print(f"Populating info for {day}...")
-            avg = options.get("avg")
-            deviation = options.get("deviation")
-            ips = [
-                ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
-                for _ in range(avg)
-            ]
+        print(f"Created {n} demo hits on {day}!")
 
-            n = avg + random.randrange(-1 * deviation * avg, deviation * avg)
-            for _ in range(n):
-                time = day + timedelta(
-                    hours=random.randrange(0, 23),
-                    minutes=random.randrange(0, 59),
-                    seconds=random.randrange(0, 59),
-                )
-                ip = random.choice(ips)
-                load_time = random.normalvariate(options.get("load_time"), 500)
-                referrer = random.choice(REFERRERS)
-                location = "https://example.com" + random.choice(LOCATIONS).replace(
-                    "{rand}", str(random.randint(0, n))
-                )
-                user_agent = random.choice(USER_AGENTS)
-                ingress_request(
-                    service.uuid,
-                    "JS",
-                    time,
-                    {"loadTime": load_time, "referrer": referrer},
-                    ip,
-                    location,
-                    user_agent,
-                )
-
-            print(f"Created {n} demo hits on {day}!")
-
-        self.stdout.write(self.style.SUCCESS(f"Successfully created demo data!"))
+    click.secho("Successfully created demo data!", fg="green")

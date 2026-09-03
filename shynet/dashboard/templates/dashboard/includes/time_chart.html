@@ -1,4 +1,4 @@
-<div id="chart{{name|default:'Main'}}"></div>
+<div id="chart{{name|default('Main')}}"></div>
 <script>
     var triggerMatchesChartOptions = {
         dataLabels: {
@@ -7,7 +7,7 @@
         tooltip: {
             shared: true,
             x: {
-                format: '{{tooltip_format|default:"MMM d"}}',
+                format: '{{tooltip_format|default("MMM d")}}',
             },
         },
         legend: {
@@ -21,7 +21,7 @@
                 show: false,
             },
             type: 'line',
-            height: {{height|default:"200"}},
+            height: {{height|default("200")}},
             offsetY: -1,
             animations: {
                 enabled: false
@@ -78,15 +78,15 @@
             name: "Hits",
             type: 'area',
             color: "#ddd6fe",
-            data: {{data.hits|safe}}
+            data: {{data.hits|tojson}}
         }, {
             name: "Sessions",
             type: 'line',
             color: "#805AD5",
-            data: {{data.sessions|safe}}
+            data: {{data.sessions|tojson}}
         }],
-        labels: {{data.labels|safe}}
+        labels: {{data.labels|tojson}}
     };
-    var triggerMatchesChart = new ApexCharts(document.querySelector("#chart{{name|default:'Main'}}"), triggerMatchesChartOptions);
+    var triggerMatchesChart = new ApexCharts(document.querySelector("#chart{{name|default('Main')}}"), triggerMatchesChartOptions);
     triggerMatchesChart.render();
 </script>

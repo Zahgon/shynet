@@ -1,23 +1,31 @@
-from django.contrib import admin
-from django.urls import include, path
+from flask import Blueprint
 
-from .views import ingress
+from shynet.extensions import csrf
 
-urlpatterns = [
-    path(
-        "<service_uuid>/pixel.gif", ingress.PixelView.as_view(), name="endpoint_pixel"
-    ),
-    path(
-        "<service_uuid>/script.js", ingress.ScriptView.as_view(), name="endpoint_script"
-    ),
-    path(
-        "<service_uuid>/<identifier>/pixel.gif",
-        ingress.PixelView.as_view(),
-        name="endpoint_pixel_id",
-    ),
-    path(
-        "<service_uuid>/<identifier>/script.js",
-        ingress.ScriptView.as_view(),
-        name="endpoint_script_id",
-    ),
-]
+from .views import ingress as ingress_views
+
+ingress = Blueprint("ingress", __name__, template_folder="templates")
+
+_pixel_view = ingress_views.PixelView.as_view("endpoint_pixel")
+_pixel_id_view = ingress_views.PixelView.as_view("endpoint_pixel_id")
+_script_view = csrf.exempt(ingress_views.ScriptView.as_view("endpoint_script"))
+_script_id_view = csrf.exempt(ingress_views.ScriptView.as_view("endpoint_script_id"))
+
+ingress.add_url_rule(
+    "/<service_uuid>/pixel.gif", view_func=_pixel_view, methods=["GET"]
+)
+ingress.add_url_rule(
+    "/<service_uuid>/script.js",
+    view_func=_script_view,
+    methods=["GET", "POST"],
+)
+ingress.add_url_rule(
+    "/<service_uuid>/<identifier>/pixel.gif",
+    view_func=_pixel_id_view,
+    methods=["GET"],
+)
+ingress.add_url_rule(
+    "/<service_uuid>/<identifier>/script.js",
+    view_func=_script_id_view,
+    methods=["GET", "POST"],
+)

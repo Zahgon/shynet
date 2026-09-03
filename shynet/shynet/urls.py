@@ -1,29 +1,28 @@
 """shynet URL Configuration
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/2.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Blueprints are mounted onto the application here. Each installed app exposes a
+blueprint whose endpoints keep the names the templates use, so `url_for` reads
+the same way the old `{% url %}` tags did (`dashboard.service`,
+`ingress.endpoint_pixel`, `core.index`, `api.services`, ...).
 """
-from django.contrib import admin
-from django.urls import include, path
-import debug_toolbar
 
-urlpatterns = [
-    path("__debug__/", include(debug_toolbar.urls)),
-    path("admin/", admin.site.urls),
-    path("accounts/", include("allauth.urls")),
-    path("ingress/", include(("analytics.ingress_urls", "ingress")), name="ingress"),
-    path("dashboard/", include(("dashboard.urls", "dashboard"), namespace="dashboard")),
-    path("healthz/", include("health_check.urls")),
-    path("", include(("core.urls", "core"), namespace="core")),
-    path("api/v1/", include(("api.urls", "api"), namespace="api")),
-]
+from .health import health
+from .staticfiles import static_blueprint
+
+
+def register_blueprints(app):
+    from a17t.views import a17t as a17t_blueprint
+    from accounts.views import accounts as accounts_blueprint
+    from analytics.ingress_urls import ingress as ingress_blueprint
+    from api.urls import api as api_blueprint
+    from core.urls import core as core_blueprint
+    from dashboard.urls import dashboard as dashboard_blueprint
+
+    app.register_blueprint(static_blueprint)
+    app.register_blueprint(accounts_blueprint, url_prefix="/accounts")
+    app.register_blueprint(ingress_blueprint, url_prefix="/ingress")
+    app.register_blueprint(dashboard_blueprint, url_prefix="/dashboard")
+    app.register_blueprint(health, url_prefix="/healthz")
+    app.register_blueprint(a17t_blueprint)
+    app.register_blueprint(core_blueprint, url_prefix="")
+    app.register_blueprint(api_blueprint, url_prefix="/api/v1")

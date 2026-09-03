@@ -1,11 +1,9 @@
-{% load i18n a17t_tags %}
-
 {{form.name|a17t}}
 {{form.link|a17t}}
 {{form.collaborators|a17t}}
 
 <details {% if form.errors %}open{% endif %}>
-    <summary class="cursor-pointer text-sm">{% trans 'Advanced settings' %}</summary>
+    <summary class="cursor-pointer text-sm">{% trans %}Advanced settings{% endtrans %}</summary>
     <hr class="sep h-4">
     {{form.respect_dnt|a17t}}
     {{form.collect_ips|a17t}}

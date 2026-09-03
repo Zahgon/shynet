@@ -1,0 +1,8 @@
+Database migrations for Shynet, managed with Alembic (via Flask-Migrate).
+
+The revisions in `versions/` are a one-to-one port of the project's previous
+migration history; each file keeps the name of the migration it came from.
+
+  flask db upgrade      apply every outstanding migration
+  flask db revision     create a new (empty) revision
+  flask db migrate      autogenerate a revision from the models

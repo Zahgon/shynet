@@ -1,5 +1,2 @@
-from django.apps import AppConfig
-
-
-class A17TConfig(AppConfig):
+class A17TConfig:
     name = "a17t"

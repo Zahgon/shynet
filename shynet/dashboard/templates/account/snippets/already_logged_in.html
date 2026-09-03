@@ -1,7 +1,4 @@
-{% load i18n %}
-{% load account %}
-
-{% user_display user as user_display %}
+{% set user_display_name = user_display(user) %}
 <aside class="aside ~info">
-    <p><strong>{% trans "Note" %}:</strong> {% blocktrans %}you are already logged in as {{ user_display }}.{% endblocktrans %}</p>
+    <p><strong>{% trans %}Note{% endtrans %}:</strong> {% trans user_display=user_display_name %}you are already logged in as {{ user_display }}.{% endtrans %}</p>
 </aside>

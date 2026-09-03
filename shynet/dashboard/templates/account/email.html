@@ -1,41 +1,39 @@
 {% extends "account/base.html" %}
 
-{% load i18n a17t_tags %}
-
-{% block head_title %}{% trans "Email Addresses" %}{% endblock %}
-{% block page_title %}{% trans "Email Addresses" %}{% endblock %}
+{% block head_title %}{% trans %}Email Addresses{% endtrans %}{% endblock %}
+{% block page_title %}{% trans %}Email Addresses{% endtrans %}{% endblock %}
 
 {% block main %}
 <div class="card ~neutral !low max-w-lg">
 
-  {% if user.emailaddress_set.all %}
-  <p>{% trans 'These are your known email addresses:' %}</p>
-  <form action="{% url 'account_email' %}" class="email_list" method="post">
-    {% csrf_token %}
+  {% if user.emailaddress_set.all() %}
+  <p>{% trans %}These are your known email addresses:{% endtrans %}</p>
+  <form action="{{ url_for('accounts.email') }}" class="email_list" method="post">
+    {{ csrf_token_input() }}
     <fieldset class="blockLabels">
-      {% for emailaddress in user.emailaddress_set.all %}
+      {% for emailaddress in user.emailaddress_set.all() %}
       <div class="ctrlHolder my-2">
-        <label for="email_radio_{{forloop.counter}}" class="switch">
+        <label for="email_radio_{{loop.index}}" class="switch">
 
-          <input id="email_radio_{{forloop.counter}}" type="radio" name="email"
-            {% if emailaddress.primary or user.emailaddress_set.count == 1 %}checked="checked" {%endif %}
+          <input id="email_radio_{{loop.index}}" type="radio" name="email"
+            {% if emailaddress.primary or user.emailaddress_set.count() == 1 %}checked="checked" {% endif %}
             value="{{emailaddress.email}}" />
 
           {{ emailaddress.email }}
           {% if emailaddress.verified %}
-          <span class="badge ~positive">{% trans "Verified" %}</span>
+          <span class="badge ~positive">{% trans %}Verified{% endtrans %}</span>
           {% else %}
-          <span class="badge ~critical">{% trans "Unverified" %}</span>
+          <span class="badge ~critical">{% trans %}Unverified{% endtrans %}</span>
           {% endif %}
-          {% if emailaddress.primary %}<span class="badge ~urge">{% trans "Primary" %}</span>{% endif %}
+          {% if emailaddress.primary %}<span class="badge ~urge">{% trans %}Primary{% endtrans %}</span>{% endif %}
         </label>
       </div>
       {% endfor %}
 
       <div class="block mt-4">
-        <button class="button ~neutral !high mb-1" type="submit" name="action_primary">{% trans 'Make Primary' %}</button>
-        <button class="button ~neutral mb-1" type="submit" name="action_send">{% trans 'Resend Verification' %}</button>
-        <button class="button ~neutral mb-1" type="submit" name="action_remove">{% trans 'Remove' %}</button>
+        <button class="button ~neutral !high mb-1" type="submit" name="action_primary">{% trans %}Make Primary{% endtrans %}</button>
+        <button class="button ~neutral mb-1" type="submit" name="action_send">{% trans %}Resend Verification{% endtrans %}</button>
+        <button class="button ~neutral mb-1" type="submit" name="action_remove">{% trans %}Remove{% endtrans %}</button>
       </div>
     </fieldset>
   </form>
@@ -43,7 +41,7 @@
   {% else %}
   <aside class="aside ~warning">
     <p>
-      {% trans "You currently do not have an email address associated with your account. Without one, you won't be able to reset your password, receive notifications, etc." %}
+      {% trans %}You currently do not have an email address associated with your account. Without one, you won't be able to reset your password, receive notifications, etc.{% endtrans %}
     </p>
   </aside>
   {% endif %}
@@ -51,10 +49,10 @@
 
 <hr class="sep">
 
-<form method="post" action="{% url 'account_email' %}" class="card ~neutral !low max-w-lg">
-  {% csrf_token %}
+<form method="post" action="{{ url_for('accounts.email') }}" class="card ~neutral !low max-w-lg">
+  {{ csrf_token_input() }}
   {{ form|a17t }}
-  <button name="action_add" class="button ~neutral !high" type="submit">{% trans "Add Address" %}</button>
+  <button name="action_add" class="button ~neutral !high" type="submit">{% trans %}Add Address{% endtrans %}</button>
 </form>
 
 {% endblock %}
@@ -63,7 +61,7 @@
 {% block extra_body %}
 <script type="text/javascript">
   (function () {
-    var message = "{% trans 'Do you really want to remove the selected email address?' %}";
+    var message = "{% trans %}Do you really want to remove the selected email address?{% endtrans %}";
     var actions = document.getElementsByName('action_remove');
     if (actions.length) {
       actions[0].addEventListener("click", function (e) {

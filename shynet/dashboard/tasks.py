@@ -1,13 +1,14 @@
-from celery import shared_task
-from django.core import mail
-from django.conf import settings
 import html2text
 
+from shynet import settings
+from shynet.celery import app as celery_app
+from shynet.mail import send_mail
 
-@shared_task
+
+@celery_app.task
 def send_email(to: [str], subject: str, content: str, from_email: str = None):
     text_content = html2text.html2text(content)
-    mail.send_mail(
+    send_mail(
         subject,
         text_content,
         from_email or settings.DEFAULT_FROM_EMAIL,

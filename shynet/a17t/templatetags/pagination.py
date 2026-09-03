@@ -1,12 +1,10 @@
 # From https://djangosnippets.org/snippets/1441/
 
-from django import template
-from django.utils.http import urlencode
+from urllib.parse import urlencode
 
-register = template.Library()
+from markupsafe import Markup
 
 
-@register.inclusion_tag("a17t/includes/pagination.html")
 def pagination(
     page,
     request,
@@ -15,8 +13,10 @@ def pagination(
     before_current_pages=4,
     after_current_pages=4,
 ):
+    from flask import render_template
+
     url_parameters = urlencode(
-        [(key, value) for key, value in request.GET.items() if key != "page"]
+        [(key, value) for key, value in request.args.items() if key != "page"]
     )
 
     before = max(page.number - before_current_pages - 1, 0)
@@ -42,10 +42,13 @@ def pagination(
         begin = range(1, last_page_number + 1)
         end = []
 
-    return {
-        "page": page,
-        "begin": begin,
-        "middle": middle,
-        "end": end,
-        "url_parameters": url_parameters,
-    }
+    return Markup(
+        render_template(
+            "a17t/includes/pagination.html",
+            page=page,
+            begin=begin,
+            middle=middle,
+            end=end,
+            url_parameters=url_parameters,
+        )
+    )

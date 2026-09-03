@@ -1,20 +1,18 @@
 {% extends "account/base.html" %}
 
-{% load i18n %}
-
-{% block head_title %}{% trans "Verify Email Address" %}{% endblock %}
-{% block page_title %}{% trans "Verify Email Address" %}{% endblock %}
+{% block head_title %}{% trans %}Verify Email Address{% endtrans %}{% endblock %}
+{% block page_title %}{% trans %}Verify Email Address{% endtrans %}{% endblock %}
 
 {% block card %}
-{% url 'account_email' as email_url %}
+{% set email_url = url_for('accounts.email') %}
 
-<p>{% blocktrans %}This part of the site requires us to verify that
+<p>{% trans %}This part of the site requires us to verify that
 you are who you claim to be. For this purpose, we require that you
-verify ownership of your email address. {% endblocktrans %}</p>
+verify ownership of your email address.{% endtrans %}</p>
 
-<p>{% blocktrans %}We have sent an email to you for
+<p>{% trans %}We have sent an email to you for
 verification. Please click on the link inside this email. Please
-try again if you do not receive it within a few minutes.{% endblocktrans %}</p>
+try again if you do not receive it within a few minutes.{% endtrans %}</p>
 
-<aside class="aside ~info">{% blocktrans %}<strong>Note:</strong> you can still <a href="{{ email_url }}">change your email address</a>.{% endblocktrans %}</aside>
+<aside class="aside ~info">{% trans %}<strong>Note:</strong> you can still <a href="{{ email_url }}">change your email address</a>.{% endtrans %}</aside>
 {% endblock %}

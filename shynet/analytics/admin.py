@@ -1,16 +1,26 @@
-from django.contrib import admin
+from core.admin import ShynetModelView
+from shynet.extensions import db
 
 from .models import Hit, Session
 
 
-class HitInline(admin.TabularInline):
-    model = Hit
-    fk_name = "session"
-    extra = 0
+class HitInline:
+    """The inline used to list a session's hits on the session detail page."""
+
+    form_columns = (
+        "initial",
+        "start_time",
+        "last_seen",
+        "heartbeats",
+        "tracker",
+        "location",
+        "referrer",
+        "load_time",
+    )
 
 
-class SessionAdmin(admin.ModelAdmin):
-    list_display = (
+class SessionAdmin(ShynetModelView):
+    column_list = (
         "uuid",
         "service",
         "start_time",
@@ -20,8 +30,7 @@ class SessionAdmin(admin.ModelAdmin):
         "asn",
         "country",
     )
-    list_display_links = ("uuid",)
-    search_fields = (
+    column_searchable_list = (
         "ip",
         "user_agent",
         "device",
@@ -30,15 +39,12 @@ class SessionAdmin(admin.ModelAdmin):
         "asn",
         "time_zone",
     )
-    list_filter = ("device_type",)
-    inlines = [HitInline]
+    column_filters = ("device_type",)
+    inline_models = [(Hit, dict(form_columns=("id",) + HitInline.form_columns))]
 
 
-admin.site.register(Session, SessionAdmin)
-
-
-class HitAdmin(admin.ModelAdmin):
-    list_display = (
+class HitAdmin(ShynetModelView):
+    column_list = (
         "session",
         "initial",
         "start_time",
@@ -47,9 +53,12 @@ class HitAdmin(admin.ModelAdmin):
         "load_time",
         "location",
     )
-    list_display_links = ("session",)
-    search_fields = ("initial", "tracker", "location", "referrer")
-    list_filter = ("initial", "tracker")
+    column_searchable_list = ("tracker", "location", "referrer")
+    column_filters = ("initial", "tracker")
 
 
-admin.site.register(Hit, HitAdmin)
+def register_admin(admin):
+    admin.add_view(
+        SessionAdmin(Session, db.session, name="Sessions", category="Analytics")
+    )
+    admin.add_view(HitAdmin(Hit, db.session, name="Hits", category="Analytics"))

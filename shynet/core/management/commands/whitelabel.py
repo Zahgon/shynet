@@ -1,29 +1,18 @@
-import traceback
-import uuid
+import click
+from flask.cli import with_appcontext
 
-from django.conf import settings
-from django.contrib.sites.models import Site
-from django.core.management.base import BaseCommand, CommandError
-from django.utils.crypto import get_random_string
-
-from core.models import User
+from core.models import Site
+from shynet import settings
+from shynet.extensions import db
 
 
-class Command(BaseCommand):
-    help = "Configures a Shynet whitelabel"
-
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "name",
-            type=str,
-        )
-
-    def handle(self, *args, **options):
-        site = Site.objects.get(pk=settings.SITE_ID)
-        site.name = options.get("name")
-        site.save()
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Successfully set the whitelabel to '{options.get('name')}'"
-            )
-        )
+@click.command("whitelabel")
+@click.argument("name", type=str)
+@with_appcontext
+def command(name):
+    """Configures a Shynet whitelabel"""
+    site = db.session.get(Site, settings.SITE_ID)
+    site.name = name
+    db.session.add(site)
+    db.session.commit()
+    click.secho(f"Successfully set the whitelabel to '{name}'", fg="green")

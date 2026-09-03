@@ -1,2 +1,1 @@
-{% load i18n %}
-<label class="label" for="{{field.auto_id}}">{% trans field.label %} {% if not field.field.required %}<span class="badge ~neutral">Optional</span>{% endif %}</label>
+<label class="label" for="{{field.id}}">{{ _(field.label.text) }} {% if not field.flags.required %}<span class="badge ~neutral">Optional</span>{% endif %}</label>

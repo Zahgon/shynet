@@ -1,48 +1,51 @@
-import traceback
-import uuid
+import click
+from flask import current_app
+from flask.cli import with_appcontext
+from sqlalchemy import func, select
+from sqlalchemy.exc import OperationalError
 
-from django.conf import settings
-from django.contrib.sites.models import Site
-from django.core.exceptions import ImproperlyConfigured
-from django.core.management.base import BaseCommand, CommandError
-from django.db import DEFAULT_DB_ALIAS, connections
-from django.db.utils import ConnectionHandler, OperationalError
-from django.utils.crypto import get_random_string
-
-from core.models import User
+from core.models import Site, User
+from shynet.extensions import db
 
 
-class Command(BaseCommand):
-    help = "Internal command to perform startup checks."
+def check_migrations():
+    """True when there are migrations still to apply (or the DB is unreachable)."""
+    from alembic.migration import MigrationContext
+    from alembic.script import ScriptDirectory
 
-    def check_migrations(self):
-        from django.db.migrations.executor import MigrationExecutor
+    try:
+        config = current_app.extensions["migrate"].migrate.get_config()
+        script = ScriptDirectory.from_config(config)
+        with db.engine.connect() as connection:
+            context = MigrationContext.configure(connection)
+            current = context.get_current_revision()
+    except OperationalError:
+        # DB_NAME database not found?
+        return True
+    except Exception:
+        # No databases are configured (or the dummy one)
+        return True
 
-        try:
-            executor = MigrationExecutor(connections[DEFAULT_DB_ALIAS])
-        except OperationalError:
-            # DB_NAME database not found?
-            return True
-        except ImproperlyConfigured:
-            # No databases are configured (or the dummy one)
-            return True
+    return current != script.get_current_head()
 
-        if executor.migration_plan(executor.loader.graph.leaf_nodes()):
-            return True
 
-        return False
+@click.command("startup_checks")
+@with_appcontext
+def command():
+    """Internal command to perform startup checks."""
+    migration = check_migrations()
 
-    def handle(self, *args, **options):
-        migration = self.check_migrations()
-
-        admin, whitelabel = [True] * 2
-        if not migration:
-            admin = not User.objects.all().exists()
-            whitelabel = (
-                not Site.objects.filter(name__isnull=False)
-                .exclude(name__exact="")
-                .exclude(name__exact="example.com")
-                .exists()
+    admin, whitelabel = [True] * 2
+    if not migration:
+        admin = not db.session.scalar(select(func.count()).select_from(User))
+        whitelabel = not db.session.scalar(
+            select(func.count())
+            .select_from(Site)
+            .where(
+                Site.name.is_not(None),
+                Site.name != "",
+                Site.name != "example.com",
             )
+        )
 
-        self.stdout.write(self.style.SUCCESS(f"{migration} {admin} {whitelabel}"))
+    click.secho(f"{migration} {bool(admin)} {bool(whitelabel)}", fg="green")
